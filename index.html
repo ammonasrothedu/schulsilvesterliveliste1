@@ -50,6 +50,7 @@
 <body>
 
 <h1>Silvester Showacts</h1>
+<button id="fullscreen-button">Vollbildmodus</button>
 
 <canvas id="clockCanvas" width="300" height="300"></canvas>
 
@@ -185,6 +186,20 @@ function updateActList() {
 
 setInterval(updateActList, 1000);
 updateActList();
+
+let fullscreenButton = document.getElementById("fullscreen-button");
+let elem = document.documentElement;
+
+fullscreenButton.addEventListener("click", function() {
+  if (document.fullscreenElement) {
+    // Wenn bereits im Vollbildmodus, diesen beenden
+    document.exitFullscreen();
+  } else {
+    // Sonst den Vollbildmodus aktivieren
+    elem.requestFullscreen();
+  }
+});
+
 
 
 </script>
