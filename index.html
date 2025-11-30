@@ -9,23 +9,19 @@
         background: #111;
         color: white;
         text-align: center;
-        margin: 0;
         padding: 20px;
     }
 
-    /* Uhr */
     #clockCanvas {
         background: #222;
         border-radius: 50%;
         margin-top: 20px;
     }
 
-    /* Showact-Liste */
     .act-list {
         margin-top: 40px;
         max-width: 500px;
-        margin-left: auto;
-        margin-right: auto;
+        margin: auto;
         text-align: left;
     }
 
@@ -43,11 +39,6 @@
         height: 80px;
         object-fit: cover;
         border-radius: 8px;
-        background: #333;
-    }
-
-    .act-info {
-        flex: 1;
     }
 
     .time-left {
@@ -58,12 +49,10 @@
 </head>
 <body>
 
-<h1>Silvester Live Showacts</h1>
+<h1>Silvester Showacts</h1>
 
-<!-- Analoge Uhr -->
 <canvas id="clockCanvas" width="300" height="300"></canvas>
 
-<!-- Showact-Liste -->
 <div class="act-list" id="actList"></div>
 
 <script>
@@ -118,15 +107,12 @@ function drawTime() {
     let minute = now.getMinutes();
     let second = now.getSeconds();
 
-    // Hour
     let hourPos = (hour + minute / 60) * Math.PI / 6;
     drawHand(hourPos, radius * 0.5, 6);
 
-    // Minute
     let minPos = (minute + second / 60) * Math.PI / 30;
     drawHand(minPos, radius * 0.75, 4);
 
-    // Second
     let secPos = second * Math.PI / 30;
     drawHand(secPos, radius * 0.85, 2, "red");
 }
@@ -136,8 +122,8 @@ function drawHand(pos, length, width, color = "white") {
     ctx.lineWidth = width;
     ctx.lineCap = "round";
     ctx.strokeStyle = color;
-    ctx.moveTo(0, 0);
     ctx.rotate(pos);
+    ctx.moveTo(0, 0);
     ctx.lineTo(0, -length);
     ctx.stroke();
     ctx.rotate(-pos);
@@ -145,22 +131,38 @@ function drawHand(pos, length, width, color = "white") {
 
 setInterval(drawClock, 1000);
 
+
 /* ------------------- SHOWACT LISTE ------------------- */
-/* Beispiel-Daten */
+
+/* 👉 HIER feste Uhrzeiten eingeben */
 const acts = [
     {
-        start: new Date(new Date().getTime() + 5 * 60000), // in 5 Minuten
+        time: "20:15",
         name: "Cello Konzert",
         persons: "Anna & Lukas",
         image: "https://via.placeholder.com/80"
     },
     {
-        start: new Date(new Date().getTime() + 15 * 60000), // in 15 Minuten
+        time: "20:30",
         name: "Comedy Show",
         persons: "Herr Müller",
         image: "https://via.placeholder.com/80"
+    },
+    {
+        time: "21:00",
+        name: "Feuershow",
+        persons: "Showgruppe Solaris",
+        image: "https://via.placeholder.com/80"
     }
 ];
+
+/* Funktion: Wandelt "HH:MM" in Date-Objekt für heute um */
+function getTodayTime(timeString) {
+    const [hours, minutes] = timeString.split(":").map(n => parseInt(n));
+    const now = new Date();
+    const date = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0);
+    return date;
+}
 
 function updateActList() {
     const container = document.getElementById("actList");
@@ -169,18 +171,23 @@ function updateActList() {
     const now = new Date();
 
     acts.forEach(act => {
-        let diffMin = Math.round((act.start - now) / 60000);
+        const start = getTodayTime(act.time);
+        const diff = Math.round((start - now) / 60000);
 
-        if (diffMin < 0) return; // schon vorbei
+        if (diff < -15) return; // Act ist schon vorbei
 
         const div = document.createElement("div");
         div.className = "act";
 
+        let status = diff >= 0 
+            ? `In ${diff} Minuten`
+            : `Läuft gerade`;
+
         div.innerHTML = `
             <img src="${act.image}">
             <div class="act-info">
-                <div class="time-left">In ${diffMin} Minuten</div>
-                <div><b>${act.name}</b></div>
+                <div class="time-left">${status}</div>
+                <div><b>${act.time} – ${act.name}</b></div>
                 <div>mit ${act.persons}</div>
             </div>
         `;
