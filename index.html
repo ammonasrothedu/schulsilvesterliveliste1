@@ -4,59 +4,190 @@
 <meta charset="UTF-8">
 <title>Silvester Showacts</title>
 <style>
-body { font-family: Arial; background:#000; color:white; margin:0; padding:20px; text-align:center; }
-body::before { content:""; position:fixed; top:0; left:0; width:100%; height:100%; background:radial-gradient(circle, rgba(255,215,0,0.2) 0%, rgba(0,0,0,0.9) 70%); z-index:-1; animation:glow 6s infinite alternate; }
-@keyframes glow { from { filter: brightness(1); } to { filter: brightness(1.3); } }
-h1 { font-size:40px; text-shadow:0 0 15px gold; }
-#clockCanvas { background:#111; border-radius:50%; margin-top:20px; box-shadow:0 0 25px gold; }
-.act-list { margin-top:40px; max-width:600px; margin-left:auto; margin-right:auto; text-align:left; }
-.act { background: rgba(30,30,30,0.9); padding:15px; border-radius:12px; margin-bottom:15px; display:flex; gap:15px; border:1px solid gold; box-shadow:0 0 10px rgba(255,215,0,0.5); animation:fadeIn 0.5s ease-out; }
-@keyframes fadeIn { from { opacity:0; transform:translateY(10px);} to { opacity:1; transform:translateY(0); } }
-.act img { width:80px; height:80px; object-fit:cover; border-radius:8px; border:2px solid gold; }
-.time-left { font-weight:bold; color:#9fd; }
-#fullscreenBtn { background:gold; border:none; color:black; padding:10px 20px; border-radius:8px; cursor:pointer; font-size:16px; margin-top:20px; box-shadow:0 0 10px gold; }
-#fullscreenBtn:hover { background:#ffea75; }
+    body {
+        font-family: Arial, sans-serif;
+        background: #111;
+        color: white;
+        text-align: center;
+        padding: 20px;
+    }
+
+    #clockCanvas {
+        background: #222;
+        border-radius: 50%;
+        margin-top: 20px;
+    }
+
+    .act-list {
+        margin-top: 40px;
+        max-width: 500px;
+        margin: auto;
+        text-align: left;
+    }
+
+    .act {
+        background: #222;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        display: flex;
+        gap: 15px;
+    }
+
+    .act img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    .time-left {
+        font-weight: bold;
+        color: #9fd;
+    }
 </style>
 </head>
 <body>
-<h1>Silvester Live Showacts</h1>
-<button id="fullscreenBtn" onclick="toggleFullscreen()">Vollbild An/Aus</button>
+
+<h1>Silvester Showacts</h1>
+
 <canvas id="clockCanvas" width="300" height="300"></canvas>
+
 <div class="act-list" id="actList"></div>
 
 <script>
-// -------------------- ANALOGE UHR --------------------
-const canvas=document.getElementById("clockCanvas"), ctx=canvas.getContext("2d"), radius=canvas.height/2;
-ctx.translate(radius,radius);
+/* ------------------- ANALOGE UHR ------------------- */
+const canvas = document.getElementById("clockCanvas");
+const ctx = canvas.getContext("2d");
+const radius = canvas.height / 2;
+ctx.translate(radius, radius);
 
-function drawClock(){ drawFace(); drawNumbers(); drawTime(); }
-function drawFace(){ ctx.beginPath(); ctx.arc(0,0,radius*0.95,0,2*Math.PI); ctx.fillStyle="#000"; ctx.fill(); ctx.strokeStyle="gold"; ctx.lineWidth=5; ctx.stroke(); ctx.beginPath(); ctx.arc(0,0,5,0,2*Math.PI); ctx.fillStyle="gold"; ctx.fill(); }
-function drawNumbers(){ ctx.font=radius*0.15+"px Arial"; ctx.textBaseline="middle"; ctx.textAlign="center"; for(let num=1;num<=12;num++){ let ang=num*Math.PI/6; ctx.rotate(ang); ctx.translate(0,-radius*0.75); ctx.rotate(-ang); ctx.fillStyle="gold"; ctx.fillText(num.toString(),0,0); ctx.rotate(ang); ctx.translate(0,radius*0.75); ctx.rotate(-ang);} }
-function drawTime(){ let now=new Date(),hour=now.getHours()%12,minute=now.getMinutes(),second=now.getSeconds(); drawHand((hour+minute/60)*Math.PI/6,radius*0.5,6,"gold"); drawHand((minute+second/60)*Math.PI/30,radius*0.75,4,"gold"); drawHand(second*Math.PI/30,radius*0.85,2,"red"); }
-function drawHand(pos,length,width,color){ ctx.beginPath(); ctx.lineWidth=width; ctx.lineCap="round"; ctx.strokeStyle=color; ctx.rotate(pos); ctx.moveTo(0,0); ctx.lineTo(0,-length); ctx.stroke(); ctx.rotate(-pos);}
-setInterval(drawClock,1000);
-
-// -------------------- SHOWACTS --------------------
-function getTodayTime(timeString){ const [h,m]=timeString.split(":").map(Number); const now=new Date(); return new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,m,0);}
-async function loadActs(){ try{ const res=await fetch("acts.json?_="+Date.now()); return await res.json(); } catch(e){ return []; } }
-
-async function updateActList(){
-  const rawActs=await loadActs(),now=new Date();
-  const sortedActs=rawActs.map(a=>{ const start=new Date(a.time); const diff=Math.round((start-now)/60000); return {...a,start,diff}; })
-    .filter(a=>a.diff>-5)
-    .sort((a,b)=>a.start-b.start);
-  const container=document.getElementById("actList"); container.innerHTML="";
-  sortedActs.forEach(act=>{
-    const div=document.createElement("div"); div.className="act";
-    const status=act.diff>=0?`In ${act.diff} Minuten`:"Läuft gerade";
-    div.innerHTML=`<img src="${act.image}"><div class="act-info"><div class="time-left">${status}</div><div><b>${act.time} – ${act.title}</b></div></div>`;
-    container.appendChild(div);
-  });
+function drawClock() {
+    drawFace();
+    drawNumbers();
+    drawTime();
 }
-setInterval(updateActList,3000); updateActList();
 
-// -------------------- FULLSCREEN --------------------
-function toggleFullscreen(){ if(!document.fullscreenElement){ document.documentElement.requestFullscreen(); } else{ document.exitFullscreen(); } }
+function drawFace() {
+    ctx.beginPath();
+    ctx.arc(0, 0, radius * 0.95, 0, 2 * Math.PI);
+    ctx.fillStyle = "#000";
+    ctx.fill();
+
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 5;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(0, 0, 5, 0, 2 * Math.PI);
+    ctx.fillStyle = "white";
+    ctx.fill();
+}
+
+function drawNumbers() {
+    ctx.font = radius * 0.15 + "px Arial";
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "center";
+
+    for (let num = 1; num <= 12; num++) {
+        let ang = num * Math.PI / 6;
+        ctx.rotate(ang);
+        ctx.translate(0, -radius * 0.75);
+        ctx.rotate(-ang);
+        ctx.fillText(num.toString(), 0, 0);
+        ctx.rotate(ang);
+        ctx.translate(0, radius * 0.75);
+        ctx.rotate(-ang);
+    }
+}
+
+function drawTime() {
+    let now = new Date();
+    let hour = now.getHours() % 12;
+    let minute = now.getMinutes();
+    let second = now.getSeconds();
+
+    let hourPos = (hour + minute / 60) * Math.PI / 6;
+    drawHand(hourPos, radius * 0.5, 6);
+
+    let minPos = (minute + second / 60) * Math.PI / 30;
+    drawHand(minPos, radius * 0.75, 4);
+
+    let secPos = second * Math.PI / 30;
+    drawHand(secPos, radius * 0.85, 2, "red");
+}
+
+function drawHand(pos, length, width, color = "white") {
+    ctx.beginPath();
+    ctx.lineWidth = width;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = color;
+    ctx.rotate(pos);
+    ctx.moveTo(0, 0);
+    ctx.lineTo(0, -length);
+    ctx.stroke();
+    ctx.rotate(-pos);
+}
+
+setInterval(drawClock, 1000);
+
+
+/* ------------------- SHOWACT LISTE ------------------- */
+
+/* Feste Uhrzeiten */
+const acts = [
+    { time: "20:15", name: "Cello Konzert", persons: "Anna & Lukas", image: "https://via.placeholder.com/80" },
+    { time: "20:30", name: "Comedy Show", persons: "Herr Müller", image: "https://via.placeholder.com/80" },
+    { time: "21:00", name: "Feuershow", persons: "Showgruppe Solaris", image: "https://via.placeholder.com/80" }
+];
+
+/* Uhrzeit-Parser: "HH:MM" → Date heute */
+function getTodayTime(timeString) {
+    const [h, m] = timeString.split(":").map(Number);
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0);
+}
+
+function updateActList() {
+    const container = document.getElementById("actList");
+    container.innerHTML = "";
+
+    const now = new Date();
+
+    /* --- Sortieren nach Zeit --- */
+    const sortedActs = acts
+        .map(act => {
+            const start = getTodayTime(act.time);
+            const diff = Math.round((start - now) / 60000);
+            return { ...act, start, diff };
+        })
+        .filter(act => act.diff > -5)   // ausblenden wenn vor mehr als 5 Min gestartet
+        .sort((a, b) => a.start - b.start); // nach Uhrzeit sortieren
+
+    sortedActs.forEach(act => {
+        const div = document.createElement("div");
+        div.className = "act";
+
+        let status = act.diff >= 0 ? `In ${act.diff} Minuten` : "Läuft gerade";
+
+        div.innerHTML = `
+            <img src="${act.image}">
+            <div class="act-info">
+                <div class="time-left">${status}</div>
+                <div><b>${act.time} – ${act.name}</b></div>
+                <div>mit ${act.persons}</div>
+            </div>
+        `;
+
+        container.appendChild(div);
+    });
+}
+
+setInterval(updateActList, 1000);
+updateActList();
+
+
 </script>
+
 </body>
 </html>
