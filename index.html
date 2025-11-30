@@ -134,40 +134,18 @@ setInterval(drawClock, 1000);
 
 /* ------------------- SHOWACT LISTE ------------------- */
 
-/* 👉 HIER feste Uhrzeiten eingeben */
+/* Feste Uhrzeiten */
 const acts = [
-    {
-        time: "24:22",
-        name: "Klarinette",
-        persons: "Anna & Lukas",
-        image: "https://via.placeholder.com/80"
-    },
-    {
-        time: "20:15",
-        name: "Cello Konzert",
-        persons: "Anna & Lukas",
-        image: "https://via.placeholder.com/80"
-    },
-    {
-        time: "20:30",
-        name: "Comedy Show",
-        persons: "Herr Müller",
-        image: "https://via.placeholder.com/80"
-    },
-    {
-        time: "21:00",
-        name: "Feuershow",
-        persons: "Showgruppe Solaris",
-        image: "https://via.placeholder.com/80"
-    }
+    { time: "20:15", name: "Cello Konzert", persons: "Anna & Lukas", image: "https://via.placeholder.com/80" },
+    { time: "20:30", name: "Comedy Show", persons: "Herr Müller", image: "https://via.placeholder.com/80" },
+    { time: "21:00", name: "Feuershow", persons: "Showgruppe Solaris", image: "https://via.placeholder.com/80" }
 ];
 
-/* Funktion: Wandelt "HH:MM" in Date-Objekt für heute um */
+/* Uhrzeit-Parser: "HH:MM" → Date heute */
 function getTodayTime(timeString) {
-    const [hours, minutes] = timeString.split(":").map(n => parseInt(n));
+    const [h, m] = timeString.split(":").map(Number);
     const now = new Date();
-    const date = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0);
-    return date;
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0);
 }
 
 function updateActList() {
@@ -176,18 +154,21 @@ function updateActList() {
 
     const now = new Date();
 
-    acts.forEach(act => {
-        const start = getTodayTime(act.time);
-        const diff = Math.round((start - now) / 60000);
+    /* --- Sortieren nach Zeit --- */
+    const sortedActs = acts
+        .map(act => {
+            const start = getTodayTime(act.time);
+            const diff = Math.round((start - now) / 60000);
+            return { ...act, start, diff };
+        })
+        .filter(act => act.diff > -5)   // ausblenden wenn vor mehr als 5 Min gestartet
+        .sort((a, b) => a.start - b.start); // nach Uhrzeit sortieren
 
-        if (diff < -15) return; // Act ist schon vorbei
-
+    sortedActs.forEach(act => {
         const div = document.createElement("div");
         div.className = "act";
 
-        let status = diff >= 0 
-            ? `In ${diff} Minuten`
-            : `Läuft gerade`;
+        let status = act.diff >= 0 ? `In ${act.diff} Minuten` : "Läuft gerade";
 
         div.innerHTML = `
             <img src="${act.image}">
@@ -204,6 +185,7 @@ function updateActList() {
 
 setInterval(updateActList, 1000);
 updateActList();
+
 
 </script>
 
