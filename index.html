@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Silvester Showacts</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #111;
+        color: white;
+        text-align: center;
+        margin: 0;
+        padding: 20px;
+    }
+
+    /* Uhr */
+    #clockCanvas {
+        background: #222;
+        border-radius: 50%;
+        margin-top: 20px;
+    }
+
+    /* Showact-Liste */
+    .act-list {
+        margin-top: 40px;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+        text-align: left;
+    }
+
+    .act {
+        background: #222;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        display: flex;
+        gap: 15px;
+    }
+
+    .act img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 8px;
+        background: #333;
+    }
+
+    .act-info {
+        flex: 1;
+    }
+
+    .time-left {
+        font-weight: bold;
+        color: #9fd;
+    }
+</style>
+</head>
+<body>
+
+<h1>Silvester Live Showacts</h1>
+
+<!-- Analoge Uhr -->
+<canvas id="clockCanvas" width="300" height="300"></canvas>
+
+<!-- Showact-Liste -->
+<div class="act-list" id="actList"></div>
+
+<script>
+/* ------------------- ANALOGE UHR ------------------- */
+const canvas = document.getElementById("clockCanvas");
+const ctx = canvas.getContext("2d");
+const radius = canvas.height / 2;
+ctx.translate(radius, radius);
+
+function drawClock() {
+    drawFace();
+    drawNumbers();
+    drawTime();
+}
+
+function drawFace() {
+    ctx.beginPath();
+    ctx.arc(0, 0, radius * 0.95, 0, 2 * Math.PI);
+    ctx.fillStyle = "#000";
+    ctx.fill();
+
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 5;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(0, 0, 5, 0, 2 * Math.PI);
+    ctx.fillStyle = "white";
+    ctx.fill();
+}
+
+function drawNumbers() {
+    ctx.font = radius * 0.15 + "px Arial";
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "center";
+
+    for (let num = 1; num <= 12; num++) {
+        let ang = num * Math.PI / 6;
+        ctx.rotate(ang);
+        ctx.translate(0, -radius * 0.75);
+        ctx.rotate(-ang);
+        ctx.fillText(num.toString(), 0, 0);
+        ctx.rotate(ang);
+        ctx.translate(0, radius * 0.75);
+        ctx.rotate(-ang);
+    }
+}
+
+function drawTime() {
+    let now = new Date();
+    let hour = now.getHours() % 12;
+    let minute = now.getMinutes();
+    let second = now.getSeconds();
+
+    // Hour
+    let hourPos = (hour + minute / 60) * Math.PI / 6;
+    drawHand(hourPos, radius * 0.5, 6);
+
+    // Minute
+    let minPos = (minute + second / 60) * Math.PI / 30;
+    drawHand(minPos, radius * 0.75, 4);
+
+    // Second
+    let secPos = second * Math.PI / 30;
+    drawHand(secPos, radius * 0.85, 2, "red");
+}
+
+function drawHand(pos, length, width, color = "white") {
+    ctx.beginPath();
+    ctx.lineWidth = width;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = color;
+    ctx.moveTo(0, 0);
+    ctx.rotate(pos);
+    ctx.lineTo(0, -length);
+    ctx.stroke();
+    ctx.rotate(-pos);
+}
+
+setInterval(drawClock, 1000);
+
+/* ------------------- SHOWACT LISTE ------------------- */
+/* Beispiel-Daten */
+const acts = [
+    {
+        start: new Date(new Date().getTime() + 5 * 60000), // in 5 Minuten
+        name: "Cello Konzert",
+        persons: "Anna & Lukas",
+        image: "https://via.placeholder.com/80"
+    },
+    {
+        start: new Date(new Date().getTime() + 15 * 60000), // in 15 Minuten
+        name: "Comedy Show",
+        persons: "Herr Müller",
+        image: "https://via.placeholder.com/80"
+    }
+];
+
+function updateActList() {
+    const container = document.getElementById("actList");
+    container.innerHTML = "";
+
+    const now = new Date();
+
+    acts.forEach(act => {
+        let diffMin = Math.round((act.start - now) / 60000);
+
+        if (diffMin < 0) return; // schon vorbei
+
+        const div = document.createElement("div");
+        div.className = "act";
+
+        div.innerHTML = `
+            <img src="${act.image}">
+            <div class="act-info">
+                <div class="time-left">In ${diffMin} Minuten</div>
+                <div><b>${act.name}</b></div>
+                <div>mit ${act.persons}</div>
+            </div>
+        `;
+
+        container.appendChild(div);
+    });
+}
+
+setInterval(updateActList, 1000);
+updateActList();
+
+</script>
+
+</body>
+</html>
