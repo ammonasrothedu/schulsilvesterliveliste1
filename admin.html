@@ -4,50 +4,14 @@
 <meta charset="UTF-8">
 <title>Showact Verwaltung</title>
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        background: #111;
-        color: white;
-        padding: 20px;
-    }
-
-    h1 {
-        text-align: center;
-    }
-
-    .form-box, .act-item {
-        background: #222;
-        padding: 15px;
-        border-radius: 10px;
-        margin-bottom: 15px;
-    }
-
-    input, button {
-        width: 100%;
-        padding: 10px;
-        margin-top: 8px;
-        border-radius: 6px;
-        border: none;
-        font-size: 16px;
-    }
-
-    button {
-        background: #3a6af7;
-        color: white;
-        cursor: pointer;
-    }
-
-    button:hover {
-        background: #234dd8;
-    }
-
-    .delete-btn {
-        background: #d33;
-    }
-
-    .delete-btn:hover {
-        background: #b11;
-    }
+  body { font-family: Arial; background:#111; color:white; padding:20px; }
+  h1 { text-align:center; }
+  .form-box, .act-item { background:#222; padding:15px; border-radius:10px; margin-bottom:15px; }
+  input, button { width:100%; padding:10px; margin-top:8px; border-radius:6px; border:none; font-size:16px; }
+  button { background:#3a6af7; color:white; cursor:pointer; }
+  button:hover { background:#234dd8; }
+  .delete-btn { background:#d33; }
+  .delete-btn:hover { background:#b11; }
 </style>
 </head>
 <body>
@@ -55,75 +19,67 @@
 <h1>Showact Editor</h1>
 
 <div class="form-box">
-    <h2>Neuen Showact hinzufügen</h2>
-
-    <input id="time" type="time">
-    <input id="name" type="text" placeholder="Act Name">
-    <input id="persons" type="text" placeholder="Personen">
-    <input id="image" type="text" placeholder="Bild URL (optional)">
-    <button onclick="addAct()">Hinzufügen</button>
+  <h2>Neuen Showact hinzufügen</h2>
+  <input id="time" type="datetime-local">
+  <input id="name" type="text" placeholder="Act Name">
+  <input id="image" type="text" placeholder="Bild URL (optional)">
+  <button onclick="addAct()">Hinzufügen</button>
 </div>
 
 <h2>Bestehende Acts</h2>
 <div id="actList"></div>
 
 <script>
-// Laden der gespeicherten Acts
 function loadActs() {
     return JSON.parse(localStorage.getItem("acts") || "[]");
 }
 
-// Speichern
 function saveActs(acts) {
     localStorage.setItem("acts", JSON.stringify(acts));
 }
 
-// Act hinzufügen
 function addAct() {
     const acts = loadActs();
-
-    acts.push({
-        time: document.getElementById("time").value,
-        name: document.getElementById("name").value,
-        persons: document.getElementById("persons").value,
-        image: document.getElementById("image").value || "https://via.placeholder.com/80"
-    });
-
+    const name = document.getElementById("name").value;
+    const time = document.getElementById("time").value;
+    const image = document.getElementById("image").value || "https://via.placeholder.com/80";
+    if(!name || !time) return alert("Name und Zeit erforderlich!");
+    acts.push({ name, time, image });
     saveActs(acts);
     showActs();
 }
 
-// Act löschen
-function deleteAct(index) {
+function deleteAct(i){
     const acts = loadActs();
-    acts.splice(index, 1);
+    acts.splice(i,1);
     saveActs(acts);
     showActs();
 }
 
-// Liste anzeigen
-function showActs() {
+function showActs(){
     const acts = loadActs();
     const list = document.getElementById("actList");
     list.innerHTML = "";
-
-    acts.forEach((act, index) => {
+    acts.forEach((act,i)=>{
         const div = document.createElement("div");
-        div.className = "act-item";
-
-        div.innerHTML = `
-            <b>${act.time} – ${act.name}</b><br>
-            Personen: ${act.persons}<br>
-            Bild: <a href="${act.image}" target="_blank">Ansehen</a><br><br>
-            <button class="delete-btn" onclick="deleteAct(${index})">Löschen</button>
-        `;
-
+        div.className="act-item";
+        div.innerHTML = `<b>${act.time} – ${act.name}</b><br>
+                         <img src="${act.image}" style="max-width:150px;"><br>
+                         <button class="delete-btn" onclick="deleteAct(${i})">Löschen</button>`;
         list.appendChild(div);
     });
 }
 
+// Beispiel-Acts initial einfügen, falls leer
+if(loadActs().length===0){
+    const demoActs = [
+        { name:"Cello Konzert", time:"2025-11-30T20:15", image:"https://via.placeholder.com/80" },
+        { name:"Comedy Show", time:"2025-11-30T20:30", image:"https://via.placeholder.com/80" },
+        { name:"Feuershow", time:"2025-11-30T21:00", image:"https://via.placeholder.com/80" }
+    ];
+    saveActs(demoActs);
+}
 showActs();
 </script>
-
 </body>
 </html>
