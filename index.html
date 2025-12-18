@@ -180,7 +180,7 @@ function updateActList() {
         let status = act.diff >= 0 ? `In ${act.diff} Minuten` : "Läuft gerade";
 
         div.innerHTML = `
-            <img src="${act.image}">
+           <img src="${act.image}">
             <div class="act-info">
                 <div class="time-left">${status}</div>
                 <div><b>${act.time} – ${act.name}</b></div>
@@ -209,7 +209,7 @@ fullscreenButton.addEventListener("click", function() {
 });
 
 
-
+// <img src="${act.image}">
 </script>
 
 </body>
